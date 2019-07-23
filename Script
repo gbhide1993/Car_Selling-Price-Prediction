@@ -1,0 +1,39 @@
+setwd("F:/Data Science Course Data/Practice Data Sets/vehicle-dataset-from-cardekho")
+df <- read.csv("car data.csv")
+str(df)
+names(df)
+##Using linear regression
+library(caTools)
+split_df <- sample.split(df, SplitRatio = 0.7)
+train_df <- subset(df, split_df == TRUE)
+test_df <- subset(df, split_df == FALSE)
+model_car <- lm(Selling_Price~ Year + Present_Price + Kms_Driven + Fuel_Type + Transmission + Owner, data = train_df)
+summary(model_car)
+test_predict <- data.frame(predict.lm(model_car, test_df))
+summary(test_predict)
+
+##Using random forest
+library(randomForest)
+library(caret)
+tuneGrid <- expand.grid(.mtry = c(1: 20))
+trControl <- trainControl(method = "cv",
+                          number = 5,
+                          search = "grid")
+
+## finding best mtry
+rf_default <- train(Selling_Price~ Year + Present_Price + Kms_Driven + 
+                      Fuel_Type + Transmission + Owner, data = train_df,
+                    method = "rf",
+                    tuneGrid = tuneGrid,
+                    importance = TRUE,
+                    nodesize = 10,
+                    metric = "RSME",
+                    trControl = trControl)
+print(rf_default)
+
+model_forest_1 <- randomForest(Selling_Price~ Year + Present_Price + 
+                               Kms_Driven + Fuel_Type + Transmission + Owner, 
+                             data = train_df , mtry = 5, ntree = 80)
+summary(model_forest_1)
+test_predict_forest_1 <- data.frame(predict(model_forest_1, test_df))
+summary(test_predict_forest_1)
